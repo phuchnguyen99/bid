@@ -1,0 +1,17 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: notification
+  datasource:
+    password: 'admin'
+    url: jdbc:postgresql://localhost:5433/bid-notification
+    username: 'postgres'
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: 'true'
+    show-sql: true
