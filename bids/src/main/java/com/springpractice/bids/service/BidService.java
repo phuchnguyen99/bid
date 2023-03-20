@@ -1,5 +1,6 @@
 package com.springpractice.bids.service;
 
+import com.springpractice.amqp.RabbitMQMessageProducer;
 import com.springpractice.bids.dto.BidRequest;
 import com.springpractice.client.auction.AuctionBidItemRequest;
 import com.springpractice.client.auction.AuctionClient;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class BidService {
 
     private final  AuctionClient auctionClient;
-    private final NotificationClient notificationClient;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
     public void bidAnAuctionItem(final BidRequest bidRequest) {
         final AuctionItemResponse response =
                 auctionClient.getAuctionItem(bidRequest.getAuctionItemId());
@@ -23,10 +24,13 @@ public class BidService {
                     .currentBid(bidRequest.getMaxAutoBidAmount())
                     .bidderName(bidRequest.getBidderName())
                     .build());
-            notificationClient.sendBidderNotificationEmail(
+            final NotificationRequest notificationRequest =
                     NotificationRequest.builder()
                             .bidderName(response.getBidderName())
-                            .currentBid(bidRequest.getMaxAutoBidAmount()).build());
+                            .currentBid(bidRequest.getMaxAutoBidAmount()).build();
+            rabbitMQMessageProducer.publish(
+                notificationRequest, "internal.exchange", "internal.notification.routing-key"
+            );
         }
         else{
             throw new IllegalStateException("Bid amount does not meet");

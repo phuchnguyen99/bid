@@ -1,13 +1,12 @@
 package com.springpractice.client.notification;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Builder
+@NoArgsConstructor
 public class NotificationRequest {
-    private final String bidderName;
-    private final double currentBid;
+    private String bidderName;
+    private double currentBid;
 }
