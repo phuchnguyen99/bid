@@ -1,11 +1,11 @@
 server:
-  port: 8083
+  port: 8081
 spring:
   application:
-    name: notification
+    name: auction
   datasource:
     password: 'admin'
-    url: jdbc:postgresql://localhost:5433/bid-notification
+    url: jdbc:postgresql://localhost:5433/auction
     username: 'postgres'
   jpa:
     hibernate:
