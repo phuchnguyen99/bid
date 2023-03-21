@@ -22,3 +22,5 @@ spring:
       notification: queue.notification
     routing-keys:
       internal-notification: internal.notification.routing-key
+  kafka:
+    bootstrap-servers: broker:9092
