@@ -1,6 +1,7 @@
 package com.springpractice.bids.controller;
 
 import com.springpractice.bids.dto.BidRequest;
+import com.springpractice.bids.exception.BidsException;
 import com.springpractice.bids.service.BidService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +15,8 @@ public class BidsController {
 
     private final BidService bidService;
     @PostMapping
-    public String bidAnAuctionItem(@RequestBody BidRequest bidRequest){
+    public String bidAnAuctionItem(@RequestBody BidRequest bidRequest) throws BidsException {
         bidService.bidAnAuctionItem(bidRequest);
-        return "Phuc";
+        return "Successfully bid an auction item";
     }
 }

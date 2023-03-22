@@ -4,6 +4,9 @@ package com.springpractice.auction.service;
 import com.springpractice.auction.AuctionRepository;
 import com.springpractice.auction.dto.AuctionItemRequest;
 import com.springpractice.auction.entity.AuctionItem;
+import com.springpractice.auction.exception.EntityAuctionItemException;
+import com.springpractice.auction.exception.GlobalErrorCode;
+import com.springpractice.auction.exception.InvalidAuctionItemException;
 import com.springpractice.client.auction.AuctionBidItemRequest;
 import com.springpractice.client.auction.AuctionItemResponse;
 import com.springpractice.client.auction.Item;
@@ -21,18 +24,26 @@ import java.util.stream.Collectors;
 public class AuctionService {
     private final AuctionRepository auctionRepository;
     public Long addAuctionItem(AuctionItemRequest auctionItemRequest) {
-      Item item = auctionItemRequest.getItem();
-      Optional<AuctionItem> auctionItem = auctionRepository.getAuctionItemByItemId(item.getItemId());
-      if(auctionItem.isPresent()){
-          throw new IllegalStateException(String.format("Item id %s already exists", item.getItemId()));
-      }
-      AuctionItem savedAuctionItem = AuctionItem.builder()
-              .reservePrice(auctionItemRequest.getReservePrice())
-              .item(com.springpractice.auction.entity.Item.builder().itemId(item.getItemId())
-                      .description(item.getDescription()).build())
-              .build();
-      auctionRepository.saveAndFlush(savedAuctionItem);
-      return savedAuctionItem.getAuctionId();
+         try{
+              Item item = auctionItemRequest.getItem();
+              Optional<AuctionItem> auctionItem = auctionRepository.getAuctionItemByItemId(item.getItemId());
+              if(auctionItem.isPresent()){
+                  throw new InvalidAuctionItemException(
+                          String.format("Item id %s already exists", item.getItemId()),
+                          GlobalErrorCode.ERROR_ENTITY_ALREADY_EXISTED);
+              }
+              AuctionItem savedAuctionItem = AuctionItem.builder()
+                      .reservePrice(auctionItemRequest.getReservePrice())
+                      .item(com.springpractice.auction.entity.Item.builder().itemId(item.getItemId())
+                              .description(item.getDescription()).build())
+                      .build();
+
+              auctionRepository.saveAndFlush(savedAuctionItem);
+             return savedAuctionItem.getAuctionId();
+         }
+         catch(final RuntimeException e){
+             throw new EntityAuctionItemException("Error while adding auction item", GlobalErrorCode.ERROR_ENTITY_GENERAL);
+         }
     }
 
     public List<AuctionItemResponse> getAllAuctionItems() {
@@ -57,7 +68,7 @@ public class AuctionService {
     public AuctionItemResponse getAuctionItem(String auctionItemId) {
         final Optional<AuctionItem> auctionItem = auctionRepository.findById(Long.valueOf(auctionItemId));
         if(!auctionItem.isPresent()){
-            throw new IllegalStateException("The auction item not found");
+            throw new InvalidAuctionItemException("The auction item not found", GlobalErrorCode.ERROR_ENTITY_NOT_FOUND);
         }
         return convertAuctionItemResponse(auctionItem.get());
     }
@@ -65,7 +76,7 @@ public class AuctionService {
     public void updateBidOnAuctionItem(String auctionItem, AuctionBidItemRequest auctionBidItemRequest) {
         final Optional<AuctionItem> auctionItemOptional = auctionRepository.findById(Long.valueOf(auctionItem));
         if(!auctionItemOptional.isPresent()){
-            throw new IllegalStateException("The auction item not found");
+            throw new InvalidAuctionItemException("The auction item not found", GlobalErrorCode.ERROR_ENTITY_NOT_FOUND);
         }
         final AuctionItem savedAuctionItem = auctionItemOptional.get();
         savedAuctionItem.setBidderName(auctionBidItemRequest.getBidderName());

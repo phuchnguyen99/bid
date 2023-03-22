@@ -1,5 +1,6 @@
 package com.springpractice.client.auction;
 
+import com.springpractice.client.exception.CustomFeignClientConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -7,7 +8,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
-        name = "auction"
+        name = "auction",
+        configuration = CustomFeignClientConfiguration.class
 )
 public interface AuctionClient {
 
