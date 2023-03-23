@@ -1,4 +1,56 @@
 services:
+  postgres:
+    container_name: postgres
+    image: postgres
+    environment:
+      - POSTGRES_DB=bid_auction
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=bid_postgres
+    volumes:
+      -  ./init_db.sh:/docker-entrypoint-initdb.d/init_db.sh
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - postgres
+    restart: unless-stopped
+  mysql:
+    container_name: mysql
+    image: mysql
+    environment:
+      MYSQL_ROOT_DB: bid_notification
+      MYSQL_ROOT_USERNAME: root
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - mysqldb:/var/lib/mysql
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - 8085:80
+    environment:
+      - PMA_ARBITRARY = 1
+      - PMA_HOST:mysql
+      - MYSQL_USERNAME:root
+      - MYSQL_ROOT_PASSWORD:secret
+    depends_on:
+      - mysql
+    networks:
+      - spring
   rabbitmq:
     image: rabbitmq:3.9.11-management-alpine
     container_name: rabbitmq
@@ -7,27 +59,13 @@ services:
       - "15672:15672"
     networks:
       - spring
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.2
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-  broker:
-    image: confluentinc/cp-kafka:7.3.2
-    container_name: broker
-    ports:
-      - "9092:9092"
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 networks:
   spring:
     driver: bridge
+  postgres:
+    driver: bridge
+volumes:
+  postgres:
+  phpadmin:
+  pgadmin:
+  mysqldb:
