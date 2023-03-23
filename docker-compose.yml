@@ -59,6 +59,54 @@ services:
       - "15672:15672"
     networks:
       - spring
+  auction:
+    image: phuchnguyen99/bid_auction:latest
+    container_name: bid_auction
+    ports:
+      - "8081:8081"
+    networks:
+      - spring
+    depends_on:
+      - postgres
+      - rabbitmq
+      - eurekaserver
+  bids:
+    image: phuchnguyen99/bid_bids:latest
+    container_name: bid_bids
+    ports:
+      - "8080:8080"
+    depends_on:
+      - notification
+      - client
+      - eurekaserver
+      - auction
+    networks:
+      - spring
+  notification:
+    image: phuchnguyen99/bid_notification:latest
+    container_name: bid_notification
+    ports:
+      - "8083:8083"
+    depends_on:
+      - client
+      - rabbitmq
+      - eurekaserver
+    networks:
+      - spring
+  eurekaserver:
+    image: phuchnguyen99/bid_eurekaserver:latest
+    container_name: bid_eurekaserver
+    ports:
+      - "8761:8761"
+    networks:
+      - spring
+  client:
+    image: phuchnguyen99/bid_client:latest
+    container_name: bid_client
+    ports:
+      - "8080:8080"
+    networks:
+      - spring
 networks:
   spring:
     driver: bridge
